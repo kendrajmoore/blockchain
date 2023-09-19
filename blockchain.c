@@ -6,17 +6,65 @@
 #include "blockchain.h"
 
 
-int my_strncmp(const char *param1, const char *param2, int size){
-    int i = 0;
-    while(*param1 && (*param1 == *param2) && i < size){
-        param1++;
-        param2++;
-        i++;
+char *my_strcpy(char *dest, const char *src)
+{
+    char *old_dest = dest;
+    while(*src != '\0')
+    {
+        *dest = *src;
+        dest++;
+        src++;
     }
-    if(i == size){
+    *dest = '\0';
+    return old_dest;
+}
+
+int my_strlen(const char* input)
+{
+    int length = 0;
+    while(*input != '\0')
+    {
+        length++;
+        input++;
+    }
+    return length;
+}
+
+int my_strcmp (char * param_1, char * param_2)
+{
+    int sum_1 = 0, sum_2 = 0;
+    int i_1 = 0, i_2 = 0;
+
+    while(i_1 < my_strlen(param_1))
+    {
+        sum_1 += param_1[i_1];
+        i_1++;
+    }
+
+    while(i_2 < my_strlen(param_2))
+    {
+        sum_2 += param_2[i_2];
+        i_2++;
+    }
+
+    if (sum_1 > sum_2)
+        return -1;
+    else if (sum_1 < sum_2)
+        return 1;
+    else
         return 0;
+}
+
+char *my_strdup(const char *param_1)
+{
+    int len = my_strlen(param_1) + 1;
+    char *result = malloc(len);
+    if(!result)
+    {
+        return NULL;
     }
-    return *(unsigned char*)param1 - *(unsigned char*)param2;
+    my_strcpy(result, param_1);
+    return result;
 }
 
 Node *create_node(int nid)
@@ -78,18 +126,45 @@ Block *create_block(char *bid)
     if(!new_block)
     {
         printf("Cannot make a new node");
+        return NULL;
     }
     new_block->bid = bid;
     new_block->next = NULL;
     return new_block;
 }
 
-void insert_block(char *bid, int nid, Node *head)
+void insert_block_to_node(char *bid, int nid, Node *head)
 {
     Block *added_block = create_block(bid);
+    if(!added_block)
+    {
+        printf("Memory allocation for new block failed.\n");
+        return;
+    }
     Node *curr = head;
+    while(curr && curr->nid != nid)
+    {
+        curr = curr->next;
+    }
+    if(curr == NULL)
+    {
+        printf("No node with that nid %d\n", nid);
+        return;
+    }
+    added_block->bid = my_strdup(bid);
+    added_block->next = NULL;
+    if(curr->chain == NULL)
+    {
+        curr->chain = added_block;
+        return;
+    }
+    Block *curr_block = curr->chain;
+    while(curr_block->next != NULL)
+    {
+        curr_block = curr_block->next;
+    }
 
-
+    curr_block->next = added_block;
 }
 
 Node *search(Node *head, int nid)
@@ -105,6 +180,105 @@ Node *search(Node *head, int nid)
     }
     return NULL;
 }
+
+void free_chain(Block *start)
+{
+    Block *curr = start;
+    while(curr)
+    {
+        Block *next_block = curr->next;
+        free(curr->bid);
+        free(curr);
+        curr = next_block;
+    }
+}
+
+int remove_node(int nid, Node **head)
+{
+    if(!head)
+    {
+        return 1;
+    }
+    Node *curr = *head;
+    Node *prev = NULL;
+    while(curr)
+    {
+        if(curr->nid == nid)
+        {
+            if(!prev)
+            {
+                *head = curr->next;
+            } else
+            {
+                prev->next = curr->next;
+            }
+            free_chain(curr->chain);
+            free(curr);
+            return 0;
+        }
+        prev = curr;
+        curr = curr->next;
+    }
+    return 1;
+}
+
+int remove_block(char *bid, Node *node)
+{
+    if(!node || !bid)
+    {
+        return 1;
+    }
+    Block *curr_block = node->chain;
+    Block *prev = NULL;
+    while(curr_block != NULL)
+    {
+        if(my_strcmp(curr_block->bid, bid) == 0)
+        {
+            if(!prev)
+            {
+                node->chain = curr_block->next;
+            } else
+            {
+                prev->next = curr_block->next;
+            }
+            free(curr_block->bid);
+            free(curr_block);
+            return 0;
+        }
+        prev = curr_block;
+        curr_block = curr_block;
+
+    }
+    return 1;
+
+}
+
+int count_nodes(Node *head)
+{
+    int count = 0;
+    Node *curr = head;
+    while(curr)
+    {
+        count++;
+        curr = curr->next;
+    }
+    return count;
+}
+
+int count_blocks(Block *start)
+{
+    int count = 0;
+    Block *curr_block = start;
+    while(curr_block)
+    {
+        count++;
+        curr_block = curr_block->next;
+    }
+    return count;
+}
+
+
+
 
 
 int main(){

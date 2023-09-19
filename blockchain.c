@@ -49,6 +49,62 @@ void insert_node(int nid, Node **head)
    curr->next = added_node;
 }
 
+int print_node(Node *head)
+{
+    Node *curr = head;
+    while(curr)
+    {
+        printf("%d", curr->nid);
+        curr = curr->next;
+    }
+    return 0;
+}
+
+void free_node(Node *head)
+{
+    Node *temp;
+    while(head)
+    {
+        temp = head;
+        head = head ->next;
+        free(temp);
+    }
+}
+
+Block *create_block(char *bid)
+{
+
+    Block *new_block = (Block*) malloc(sizeof(Block));
+    if(!new_block)
+    {
+        printf("Cannot make a new node");
+    }
+    new_block->bid = bid;
+    new_block->next = NULL;
+    return new_block;
+}
+
+void insert_block(char *bid, int nid, Node *head)
+{
+    Block *added_block = create_block(bid);
+    Node *curr = head;
+
+
+}
+
+Node *search(Node *head, int nid)
+{
+    Node *curr = head;
+    while(curr)
+    {
+        if(curr->nid == nid)
+        {
+            return curr;
+        }
+        curr->next = curr;
+    }
+    return NULL;
+}
 
 
 int main(){

@@ -62,6 +62,30 @@ char *my_itoa(int value, char *input, int base)
     return input;
 }
 
+int my_atoi(const char *input)
+{
+    int result = 0;
+    int sign = 1;
+    while(*input == ' ')
+    {
+        input++;
+    }
+    if(*input == '-')
+    {
+        sign = -1;
+        input++;
+    } else if(*input == '+')
+    {
+        input++;
+    }
+    while(*input >= '0' && *input <= '9')
+    {
+        result = result * 10 + (*input - '0');
+        input++;
+    }
+    return sign * result;
+}
+
 int my_strlen(const char* input)
 {
     int length = 0;
@@ -397,6 +421,106 @@ int save_file(Node *head)
     close(fd);
     return 0;
 }
+
+int compare_chains(Node *chain1, Node *chain2)
+{
+    while(chain1 != NULL && chain2 != NULL)
+    {
+        if(chain1->nid != chain2->nid)
+        {
+            return 0;
+        }
+        Block *block1 = chain1->chain;
+        Block *block2 = chain2->chain;
+        while(block1 != NULL && block2 != NULL)
+        {
+            if(my_strcmp(block1->bid, block2->bid) != 0)
+            {
+                return 0;
+            }
+            block1 = block1->next;
+            block2 = block2->next;
+        }
+        if(block1 != NULL || block2 != NULL)
+        {
+            return 0;
+        }
+        chain1 = chain1->next;
+        chain2 = chain2->next;
+    }
+    if(chain1 != NULL || chain2 != NULL)
+    {
+        return 0;
+    }
+    return 1;
+}
+
+int read_line(int fd , char *buffer, size_t size)
+{
+    size_t i = 0;
+    while(i < size -1)
+    {
+        char c;
+        int result = read(fd, &c, 1);
+        if(result == -1)
+        {
+            return -1;
+        } else if(result == 0|| c == '\n')
+        {
+            buffer[i] = '\0';
+            return i;
+        } else
+        {
+            buffer[i] = c;
+            i++;
+        }
+    }
+    buffer[size -1] = '\0';
+    return i;
+}
+
+
+Node *load_file()
+{
+    int fd = open(BLOCKCKAIN_SAVE_FILE, O_RDONLY);
+    if(fd == -1)
+    {
+        return NULL;
+    }
+    Node *head = NULL;
+    Node **curr_ptr = &head;
+    char line[1024];
+    while(read_line(fd, line, sizeof(line)))
+    {
+        if(my_strcmp(line, "---") == 0)
+        {
+            curr_ptr = &((*curr_ptr)->next);
+            continue;
+        }
+        if(!head || !(*curr_ptr))
+        {
+            Node *added_node = (Node*)malloc(sizeof(Node));
+            added_node->nid = my_atoi(line);
+            added_node->chain = NULL;
+            added_node->next = NULL;
+            *curr_ptr = added_node;
+        } else
+        {
+            Block *added_block = (Block*)malloc(sizeof(Block));
+            added_block->bid = my_strdup(line);
+            added_block->next = NULL;
+            Block **curr_block_ptr = &((*curr_ptr)->chain);
+            while(*curr_block_ptr)
+            {
+                curr_block_ptr = &((*curr_block_ptr)->next);
+            }
+            *curr_block_ptr = added_block;
+        }
+    }
+    close(fd);
+    return head;
+}
+
 
 
 

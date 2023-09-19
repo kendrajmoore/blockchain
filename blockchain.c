@@ -3,267 +3,66 @@
 //
 #include "blockchain.h"
 
-
-char *my_strcpy(char *dest, const char *src)
+int add_node(int nid, Node **head)
 {
-    char *old_dest = dest;
-    while(*src != '\0')
-    {
-        *dest = *src;
-        dest++;
-        src++;
-    }
-    *dest = '\0';
-    return old_dest;
-}
-
-char *my_itoa(int value, char *input, int base)
-{
-    if(base != 10)
-    {
-        return NULL;
-    }
-    char *start = input;
-    bool neg = false;
-    if(value == 0)
-    {
-        *input = '0';
-        *input++;
-        *input = '\0';
-        return input;
-    }
-    if(value < 0)
-    {
-        neg = true;
-        value = -value;
-    }
-    while(value != 0)
-    {
-        int digit = value % 10;
-        *input = '0' + digit;
-        *input++;
-        value /= 10;
-    }
-    if(neg)
-    {
-        *input = '-';
-        *input++;
-    }
-    *input = '\0';
-    char *end = input -1;
-    while(start < end)
-    {
-        char temp = *start;
-        *start = *end;
-        *end = temp;
-        start++;
-        end--;
-    }
-    return input;
-}
-
-int my_atoi(const char *input)
-{
-    int result = 0;
-    int sign = 1;
-    while(*input == ' ')
-    {
-        input++;
-    }
-    if(*input == '-')
-    {
-        sign = -1;
-        input++;
-    } else if(*input == '+')
-    {
-        input++;
-    }
-    while(*input >= '0' && *input <= '9')
-    {
-        result = result * 10 + (*input - '0');
-        input++;
-    }
-    return sign * result;
-}
-
-int my_strlen(const char* input)
-{
-    int length = 0;
-    while(*input != '\0')
-    {
-        length++;
-        input++;
-    }
-    return length;
-}
-
-int my_strcmp (char * param_1, char * param_2)
-{
-    int sum_1 = 0, sum_2 = 0;
-    int i_1 = 0, i_2 = 0;
-
-    while(i_1 < my_strlen(param_1))
-    {
-        sum_1 += param_1[i_1];
-        i_1++;
-    }
-
-    while(i_2 < my_strlen(param_2))
-    {
-        sum_2 += param_2[i_2];
-        i_2++;
-    }
-
-    if (sum_1 > sum_2)
-        return -1;
-    else if (sum_1 < sum_2)
-        return 1;
-    else
-        return 0;
-}
-
-char *my_strdup(const char *param_1)
-{
-    int len = my_strlen(param_1) + 1;
-    char *result = malloc(len);
-    if(!result)
-    {
-        return NULL;
-    }
-    my_strcpy(result, param_1);
-    return result;
-}
-
-char *my_strncat(char *dest, const char *src, size_t count)
-{
-    char *original_dest = dest;
-    while(*dest)
-    {
-        dest++;
-    }
-    while(count-- && *src)
-    {
-        *dest++ = *src++;
-    }
-    *dest = '\0';
-    return original_dest;
-}
-
-char *my_strcat(char *dest, const char *src)
-{
-    char *original_dest = dest;
-    while(*dest)
-    {
-        dest++;
-    }
-    while(*src)
-    {
-        *dest = *src;
-        dest++;
-        src++;
-    }
-    *dest = '\0';
-    return original_dest;
-}
-
-Node *create_node(int nid)
-{
-
     Node *new_node = (Node*) malloc(sizeof(Node));
     if(!new_node)
     {
         printf("Cannot make a new node");
+        return 1;
     }
     new_node->nid = nid;
     new_node->chain = NULL;
     new_node->next = NULL;
-    return new_node;
-}
-
-void insert_node(int nid, Node **head)
-{
-   Node *added_node = create_node(nid);
    if(*head == NULL)
    {
-       *head = added_node;
-       return;
+       *head = new_node;
    }
    Node *curr = *head;
    while(curr->next)
    {
        curr = curr->next;
    }
-   curr->next = added_node;
+   curr->next = new_node;
+   return 0;
 }
 
-int print_node(Node *head)
+int print_node(Node *head, bool print_blocks)
 {
     Node *curr = head;
     while(curr)
     {
         printf("%d", curr->nid);
-        curr = curr->next;
+       if(print_blocks)
+       {
+           Block *curr_block = curr->chain;
+           printf(": ");
+           while(curr_block)
+           {
+               printf("%s ", curr_block->bid);
+               curr_block = curr_block->next;
+           }
+       }
+       printf("\n");
+       curr = curr->next;
     }
     return 0;
 }
 
-void free_node(Node *head)
+int free_node(Node *head)
 {
     Node *temp;
+    if(!head)
+    {
+        return 4;
+    }
     while(head)
     {
         temp = head;
         head = head ->next;
         free(temp);
     }
-}
-
-Block *create_block(char *bid)
-{
-
-    Block *new_block = (Block*) malloc(sizeof(Block));
-    if(!new_block)
-    {
-        printf("Cannot make a new node");
-        return NULL;
-    }
-    new_block->bid = bid;
-    new_block->next = NULL;
-    return new_block;
-}
-
-void insert_block_to_node(char *bid, int nid, Node *head)
-{
-    Block *added_block = create_block(bid);
-    if(!added_block)
-    {
-        printf("Memory allocation for new block failed.\n");
-        return;
-    }
-    Node *curr = head;
-    while(curr && curr->nid != nid)
-    {
-        curr = curr->next;
-    }
-    if(curr == NULL)
-    {
-        printf("No node with that nid %d\n", nid);
-        return;
-    }
-    added_block->bid = my_strdup(bid);
-    added_block->next = NULL;
-    if(curr->chain == NULL)
-    {
-        curr->chain = added_block;
-        return;
-    }
-    Block *curr_block = curr->chain;
-    while(curr_block->next != NULL)
-    {
-        curr_block = curr_block->next;
-    }
-
-    curr_block->next = added_block;
+    return 0;
 }
 
 Node *search_node(Node *head, int nid)
@@ -280,24 +79,8 @@ Node *search_node(Node *head, int nid)
     return NULL;
 }
 
-void free_chain(Block *start)
-{
-    Block *curr = start;
-    while(curr)
-    {
-        Block *next_block = curr->next;
-        free(curr->bid);
-        free(curr);
-        curr = next_block;
-    }
-}
-
 int remove_node(int nid, Node **head)
 {
-    if(!head)
-    {
-        return 1;
-    }
     Node *curr = *head;
     Node *prev = NULL;
     while(curr)
@@ -311,21 +94,71 @@ int remove_node(int nid, Node **head)
             {
                 prev->next = curr->next;
             }
-            free_chain(curr->chain);
+            Block *curr_block = curr->chain;
+            while(curr_block)
+            {
+                Block *temp = curr_block;
+                curr_block = curr_block->next;
+                free(temp->bid);
+                free(temp);
+            }
             free(curr);
             return 0;
         }
         prev = curr;
         curr = curr->next;
     }
-    return 1;
+    printf("nok: node %d doesn't exist\n", nid);
+    return 4;
+}
+
+
+int add_block(char *bid, int nid, Node *head)
+{
+    Node *curr = head;
+    while(curr)
+    {
+        if(nid == curr->nid || nid == -1)
+        {
+            Block *new_block = (Block*) malloc(sizeof(Block));
+            if(!new_block)
+            {
+                printf("nok: no more resources available on the computer");
+                return 1;
+            }
+            new_block->bid = my_strdup(bid);
+            new_block->next = NULL;
+            Block *curr_block = curr->chain;
+            if(curr_block == NULL)
+            {
+                curr->chain = new_block;
+            } else
+            {
+                while(curr_block->next != NULL)
+                {
+                    curr_block = curr_block->next;
+                }
+                curr_block->next = new_block;
+            }
+            return 0;
+        }
+        curr = curr->next;
+    }
+    printf("nok: node %d doesn't exist\n", nid);
+    return 2;
 }
 
 int remove_block(char *bid, Node *node)
 {
-    if(!node || !bid)
+    if(!node)
     {
-        return 1;
+        printf("This node doesn't exist");
+        return 4;
+    }
+    if(!bid)
+    {
+        printf("This block %s doesn't exist", bid);
+        return 5;
     }
     Block *curr_block = node->chain;
     Block *prev = NULL;
@@ -364,21 +197,10 @@ int count_nodes(Node *head)
     return count;
 }
 
-int count_blocks(Block *start)
-{
-    int count = 0;
-    Block *curr_block = start;
-    while(curr_block)
-    {
-        count++;
-        curr_block = curr_block->next;
-    }
-    return count;
-}
 
-Block *find_block(Block *start, char *bid)
+Block *find_block(Node *start, char *bid)
 {
-    Block *curr_block = start;
+    Block *curr_block = start->chain;
     while(curr_block)
     {
         if(my_strcmp(curr_block->bid, bid) == 0)
@@ -390,11 +212,26 @@ Block *find_block(Block *start, char *bid)
     return NULL;
 }
 
+
+void free_chain(Block *start)
+{
+    Block *curr = start;
+    while(curr)
+    {
+        Block *next_block = curr->next;
+        free(curr->bid);
+        free(curr);
+        curr = next_block;
+    }
+}
+
+
 int save_file(Node *head)
 {
     int fd = open(BLOCKCKAIN_SAVE_FILE, O_WRONLY | O_CREAT | O_TRUNC, 0644);
     if(fd == -1)
     {
+        printf("No more resources available on the computer");
         return 1;
     }
     char buffer[512];
@@ -422,63 +259,44 @@ int save_file(Node *head)
     return 0;
 }
 
-int compare_chains(Node *chain1, Node *chain2)
+bool compare_chains(Block *chain1, Block *chain2)
 {
-    while(chain1 != NULL && chain2 != NULL)
+    Block *one = chain1;
+    Block *two = chain2;
+    while(one && two)
     {
-        if(chain1->nid != chain2->nid)
+        if(my_strcmp(one->bid, two->bid) != 0)
         {
-            return 0;
+            return false;
         }
-        Block *block1 = chain1->chain;
-        Block *block2 = chain2->chain;
-        while(block1 != NULL && block2 != NULL)
-        {
-            if(my_strcmp(block1->bid, block2->bid) != 0)
-            {
-                return 0;
-            }
-            block1 = block1->next;
-            block2 = block2->next;
-        }
-        if(block1 != NULL || block2 != NULL)
-        {
-            return 0;
-        }
-        chain1 = chain1->next;
-        chain2 = chain2->next;
+        one = one->next;
+        two = two->next;
     }
-    if(chain1 != NULL || chain2 != NULL)
+    if(one || two)
     {
-        return 0;
+        return false;
     }
-    return 1;
+    return true;
 }
 
-int read_line(int fd , char *buffer, size_t size)
+bool sync_state(Node *head)
 {
-    size_t i = 0;
-    while(i < size -1)
+    if(head == NULL || head->next == NULL)
     {
-        char c;
-        int result = read(fd, &c, 1);
-        if(result == -1)
+        return true;
+    }
+    Node *temp = head;
+    Block *chain = temp->chain;
+    while(temp->next)
+    {
+        temp = temp->next;
+        if(!compare_chains(chain, temp->chain))
         {
-            return -1;
-        } else if(result == 0|| c == '\n')
-        {
-            buffer[i] = '\0';
-            return i;
-        } else
-        {
-            buffer[i] = c;
-            i++;
+            return false;
         }
     }
-    buffer[size -1] = '\0';
-    return i;
+    return true;
 }
-
 
 Node *load_file()
 {
@@ -520,11 +338,176 @@ Node *load_file()
     close(fd);
     return head;
 }
+void process_rm(char *arg1, char *arg2, char *arg3, Node **head)
+{
+    if(arg1 == NULL || arg2 == NULL)
+    {
+        printf("nok: missing argument\n");
+    } else if (my_strcmp(arg1, "node") == 0)
+    {
+        int nid;
+        if(my_strcmp(arg2, "*") == 0)
+        {
+            nid = -1;
+        } else
+        {
+            nid = my_atoi(arg2);
+        }
+        if(nid == -1)
+        {
+            while(*head != NULL)
+            {
+                remove_node((*head)->nid, head);
+            }
+            printf("Ok\n");
+        } else if(remove_node(nid, head) == 0)
+        {
+            printf("OK\n");
+        }
+    } else if(my_strcmp(arg1, "block") == 0)
+    {
+        if(remove_block(arg2, *head) == 0)
+        {
+            printf("OK\n");
+        } else
+        {
+            printf("nok: block %s doesn't exist\n", arg2);
+        }
+    } else
+    {
+        printf("nok: invalid command \n");
+    }
+}
+void process_ls(char *arg1, char *arg2, char *arg3, Node **head)
+{
+    bool blocks = false;
+    if(arg1 != NULL && my_strcmp(arg1, "-l") == 0)
+    {
+        blocks = true;
+    }
+    print_node(*head, blocks);
+}
 
+void process_sync(char *arg1, char *arg2, char *arg3, Node **head)
+{
+    sync_state(*head);
+    printf("Ok\n");
+}
 
+void process_add(char *arg1, char *arg2, char *arg3, Node **head)
+{
+    int i = 0;
+    if(arg1 == NULL || arg2 == NULL)
+    {
+        printf("nok: missing argument\n");
+    } else if(my_strcmp(arg1, "node") == 0)
+    {
+        i++;
+        int nid = my_atoi(arg2);
+        if(add_node(nid, head) == 0)
+        {
+            printf("OK\n");
+        }
+    } else if(my_strcmp(arg1, "block") == 0)
+    {
+        if(arg3 == NULL)
+        {
+            printf("nok: missing argument");
+        } else
+        {
+            int nid;
+            if(my_strcmp(arg3, "*") == 0)
+            {
+                nid = -1;
+            } else
+            {
+                nid = my_atoi(arg3);
+            }
+            if(add_node(nid, head) == 0)
+            {
+                printf("OK\n");
+            }
+        }
+    } else
+    {
+        printf("nok: invalid command\n");
+    }
 
+}
 
+void my_blockchain()
+{
+    Node *head = load_file();
+    char input[100];
+    ssize_t bytes_read;
+    char *ptr;
+    char sync_state_c;
+    options_t  command[] = {
+            {"add", CMD_ADD, process_add},
+            {"rm", CMD_RM, process_rm},
+            {"ls", CMD_LS, process_ls},
+            {"sync", CMD_SYNC, process_sync},
+            {"quit", CMD_QUIT, NULL},
+            {"exit", CMD_QUIT, NULL},
+            {NULL, CMD_UNKNOWN, NULL}
+    };
+
+    while(1)
+    {
+        int nodes = count_nodes(head);
+        if(sync_state(head))
+        {
+            sync_state_c = 's';
+        } else
+        {
+            sync_state_c = '_';
+        }
+        printf("[%c%d]> ", sync_state_c, nodes);
+        bytes_read = read(STDIN_FILENO, input, sizeof(input) -1);
+        if(bytes_read <= 0)
+        {
+            printf("nok: failed to read input");
+            continue;
+        }
+        input[bytes_read] = '\0';
+        if(input[bytes_read -1] == '\n')
+        {
+            input[bytes_read -1] = '\0';
+        }
+        char *cmd = my_strtok(input, " ", &ptr);
+        char *arg1 = my_strtok(NULL, " ", &ptr);
+        char *arg2 = my_strtok(NULL, " ", &ptr);
+        char *arg3 = my_strtok(NULL, " ", &ptr);
+
+        CommandType type = CMD_UNKNOWN;
+        for(int i = 0; command[i].command_str; i++)
+        {
+            if(my_strcmp(cmd, command[i].command_str) == 0)
+            {
+                type = command[i].cmd_type;
+                break;
+            }
+        }
+        switch(type)
+        {
+            case CMD_ADD:
+            case CMD_RM:
+            case CMD_LS:
+            case CMD_SYNC:
+                command[type].cmd_func(arg1, arg2, arg3, &head);
+                break;
+            case CMD_QUIT:
+                save_file(head);
+                free_chain(head);
+                return;
+
+            default:
+                printf("nok: invalid command\n");
+        }
+    }
+}
 
 int main(){
+    my_blockchain();
     return 0;
 }

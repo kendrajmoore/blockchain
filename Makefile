@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS =  -Wall
-TARGET = blockchain
+TARGET = my_blockchain
 SOURCE = blockchain.c
 
 $(TARGET): $(SOURCE)

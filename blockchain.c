@@ -167,7 +167,7 @@ void insert_block_to_node(char *bid, int nid, Node *head)
     curr_block->next = added_block;
 }
 
-Node *search(Node *head, int nid)
+Node *search_node(Node *head, int nid)
 {
     Node *curr = head;
     while(curr)
@@ -277,6 +277,19 @@ int count_blocks(Block *start)
     return count;
 }
 
+Block *find_block(Block *start, char *bid)
+{
+    Block *curr_block = start;
+    while(curr_block)
+    {
+        if(my_strcmp(curr_block->bid, bid) == 0)
+        {
+            return curr_block;
+        }
+        curr_block = curr_block->next;
+    }
+    return NULL;
+}
 
 
 

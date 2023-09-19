@@ -1,7 +1,11 @@
 //
 // Created by Kendra Moore on 9/17/23.
 //
+#include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #ifndef BLOCKCHAIN_BLOCKCHAIN_H
 #define BLOCKCHAIN_BLOCKCHAIN_H

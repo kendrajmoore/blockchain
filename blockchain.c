@@ -1,8 +1,6 @@
 //
 // Created by Kendra Moore on 9/5/23.
 //
-
-#include <stdlib.h>
 #include "blockchain.h"
 
 
@@ -17,6 +15,51 @@ char *my_strcpy(char *dest, const char *src)
     }
     *dest = '\0';
     return old_dest;
+}
+
+char *my_itoa(int value, char *input, int base)
+{
+    if(base != 10)
+    {
+        return NULL;
+    }
+    char *start = input;
+    bool neg = false;
+    if(value == 0)
+    {
+        *input = '0';
+        *input++;
+        *input = '\0';
+        return input;
+    }
+    if(value < 0)
+    {
+        neg = true;
+        value = -value;
+    }
+    while(value != 0)
+    {
+        int digit = value % 10;
+        *input = '0' + digit;
+        *input++;
+        value /= 10;
+    }
+    if(neg)
+    {
+        *input = '-';
+        *input++;
+    }
+    *input = '\0';
+    char *end = input -1;
+    while(start < end)
+    {
+        char temp = *start;
+        *start = *end;
+        *end = temp;
+        start++;
+        end--;
+    }
+    return input;
 }
 
 int my_strlen(const char* input)
@@ -65,6 +108,38 @@ char *my_strdup(const char *param_1)
     }
     my_strcpy(result, param_1);
     return result;
+}
+
+char *my_strncat(char *dest, const char *src, size_t count)
+{
+    char *original_dest = dest;
+    while(*dest)
+    {
+        dest++;
+    }
+    while(count-- && *src)
+    {
+        *dest++ = *src++;
+    }
+    *dest = '\0';
+    return original_dest;
+}
+
+char *my_strcat(char *dest, const char *src)
+{
+    char *original_dest = dest;
+    while(*dest)
+    {
+        dest++;
+    }
+    while(*src)
+    {
+        *dest = *src;
+        dest++;
+        src++;
+    }
+    *dest = '\0';
+    return original_dest;
 }
 
 Node *create_node(int nid)
@@ -289,6 +364,38 @@ Block *find_block(Block *start, char *bid)
         curr_block = curr_block->next;
     }
     return NULL;
+}
+
+int save_file(Node *head)
+{
+    int fd = open(BLOCKCKAIN_SAVE_FILE, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if(fd == -1)
+    {
+        return 1;
+    }
+    char buffer[512];
+    char num_buffer[50];
+    Node *curr = head;
+    while(curr)
+    {
+        my_strcpy(buffer, "Node: ");
+        my_itoa(curr->nid, num_buffer, 10);
+        my_strcat(buffer, num_buffer);
+        my_strcat(buffer, "\n");
+        write(fd, buffer, my_strlen(buffer));
+        Block *curr_block = curr->chain;
+        while(curr_block)
+        {
+            my_strcpy(buffer, "Block: ");
+            my_strncat(buffer, curr_block->bid, sizeof(buffer) - my_strlen(buffer) -1);
+            my_strcat(buffer, "\n");
+            write(fd, buffer, my_strlen(buffer));
+            curr_block = curr_block->next;
+        }
+        curr = curr->next;
+    }
+    close(fd);
+    return 0;
 }
 
 

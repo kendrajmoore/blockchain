@@ -303,6 +303,7 @@ Node *load_file()
     int fd = open(BLOCKCKAIN_SAVE_FILE, O_RDONLY);
     if(fd == -1)
     {
+        printf("No Backup Found: Starting New Blockchain");
         return NULL;
     }
     Node *head = NULL;
@@ -437,6 +438,7 @@ void process_add(char *arg1, char *arg2, char *arg3, Node **head)
 
 void my_blockchain()
 {
+    printf("here");
     Node *head = load_file();
     char input[100];
     ssize_t bytes_read;
@@ -451,7 +453,7 @@ void my_blockchain()
             {"exit", CMD_QUIT, NULL},
             {NULL, CMD_UNKNOWN, NULL}
     };
-
+    printf("I made it here");
     while(1)
     {
         int nodes = count_nodes(head);
@@ -462,6 +464,7 @@ void my_blockchain()
         {
             sync_state_c = '_';
         }
+        printf("I made it here 2");
         printf("[%c%d]> ", sync_state_c, nodes);
         bytes_read = read(STDIN_FILENO, input, sizeof(input) -1);
         if(bytes_read <= 0)
@@ -470,9 +473,11 @@ void my_blockchain()
             continue;
         }
         input[bytes_read] = '\0';
+        printf("I made it here 3");
         if(input[bytes_read -1] == '\n')
         {
             input[bytes_read -1] = '\0';
+            bytes_read--;
         }
         char *cmd = my_strtok(input, " ", &ptr);
         char *arg1 = my_strtok(NULL, " ", &ptr);

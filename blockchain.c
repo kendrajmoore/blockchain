@@ -17,6 +17,7 @@ int add_node(int nid, Node **head)
    if(*head == NULL)
    {
        *head = new_node;
+       return 0;
    }
    Node *curr = *head;
    while(curr->next)
@@ -303,8 +304,15 @@ Node *load_file()
     int fd = open(BLOCKCKAIN_SAVE_FILE, O_RDONLY);
     if(fd == -1)
     {
-        printf("No Backup Found: Starting New Blockchain");
+        printf("No Backup Found: Starting New Blockchain\n");
         return NULL;
+    }
+    if(fd)
+    {
+        printf("Restoring From Backup\n");
+    } else
+    {
+        printf("Starting New Blockchain\n");
     }
     Node *head = NULL;
     Node **curr_ptr = &head;
@@ -339,6 +347,7 @@ Node *load_file()
     close(fd);
     return head;
 }
+
 void process_rm(char *arg1, char *arg2, char *arg3, Node **head)
 {
     if(arg1 == NULL || arg2 == NULL)
@@ -397,38 +406,45 @@ void process_sync(char *arg1, char *arg2, char *arg3, Node **head)
 
 void process_add(char *arg1, char *arg2, char *arg3, Node **head)
 {
-    int i = 0;
     if(arg1 == NULL || arg2 == NULL)
     {
         printf("nok: missing argument\n");
-    } else if(my_strcmp(arg1, "node") == 0)
+        return;
+    }
+    if(my_strcmp(arg1, "node") == 0)
     {
-        i++;
         int nid = my_atoi(arg2);
         if(add_node(nid, head) == 0)
         {
             printf("OK\n");
+        } else
+        {
+            printf("nok: failed to add node\n");
         }
     } else if(my_strcmp(arg1, "block") == 0)
     {
         if(arg3 == NULL)
         {
-            printf("nok: missing argument");
+            printf("nok: missing argument\n");
+            return;
+        }
+        int nid;
+        char *block_id = arg2;
+        if(my_strcmp(arg3, "*") == 0)
+        {
+            nid = -1;
         } else
         {
-            int nid;
-            if(my_strcmp(arg3, "*") == 0)
-            {
-                nid = -1;
-            } else
-            {
-                nid = my_atoi(arg3);
-            }
-            if(add_node(nid, head) == 0)
-            {
-                printf("OK\n");
-            }
+            nid = my_atoi(arg3);
         }
+        if(add_block(block_id, nid, *head) == 0)
+        {
+                printf("OK\n");
+        } else
+        {
+            printf("nok: failed to add block");
+        }
+
     } else
     {
         printf("nok: invalid command\n");
@@ -438,7 +454,7 @@ void process_add(char *arg1, char *arg2, char *arg3, Node **head)
 
 void my_blockchain()
 {
-    printf("here");
+    printf("here\n");
     Node *head = load_file();
     char input[100];
     ssize_t bytes_read;
@@ -453,7 +469,7 @@ void my_blockchain()
             {"exit", CMD_QUIT, NULL},
             {NULL, CMD_UNKNOWN, NULL}
     };
-    printf("I made it here");
+    printf("I made it here\n");
     while(1)
     {
         int nodes = count_nodes(head);
@@ -464,8 +480,8 @@ void my_blockchain()
         {
             sync_state_c = '_';
         }
-        printf("I made it here 2");
-        printf("[%c%d]> ", sync_state_c, nodes);
+        printf("I made it here 2\n");
+        printf("[%c%d]> \n", sync_state_c, nodes);
         bytes_read = read(STDIN_FILENO, input, sizeof(input) -1);
         if(bytes_read <= 0)
         {
@@ -473,7 +489,7 @@ void my_blockchain()
             continue;
         }
         input[bytes_read] = '\0';
-        printf("I made it here 3");
+        printf("I made it here 3\n");
         if(input[bytes_read -1] == '\n')
         {
             input[bytes_read -1] = '\0';
@@ -483,10 +499,19 @@ void my_blockchain()
         char *arg1 = my_strtok(NULL, " ", &ptr);
         char *arg2 = my_strtok(NULL, " ", &ptr);
         char *arg3 = my_strtok(NULL, " ", &ptr);
+        printf("%s\n", cmd);
+        printf("command");
+        printf("%s\n", arg1);
+        printf("arg1");
+        printf("%s\n", arg2);
+        printf("arg2");
+        printf("%s\n", arg3);
+        printf("arg3");
 
         CommandType type = CMD_UNKNOWN;
         for(int i = 0; command[i].command_str; i++)
         {
+            printf("%s", command[i].command_str);
             if(my_strcmp(cmd, command[i].command_str) == 0)
             {
                 type = command[i].cmd_type;

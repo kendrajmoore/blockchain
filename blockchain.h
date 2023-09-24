@@ -44,37 +44,63 @@ typedef struct
     CommandFunc cmd_func;
 } options_t;
 
+const char *my_strchr(const char *s, int c)
+{
+    while(*s != '\0')
+    {
+        if(*s ==(char)c)
+        {
+            return s;
+        }
+        s++;
+    }
+    if(c == '\0')
+    {
+        return s;
+    }
+    return NULL;
+}
 
 char *my_strtok(char *input, const char *punc, char **ptr)
 {
-    char *start;
-    int i;
+    if (!input && (!ptr || !*ptr || **ptr == '\0'))
+        return NULL;  // No more tokens
+
     if(input == NULL)
     {
         input = *ptr;
-        if(input == NULL)
-        {
-            return NULL;
-        }
     }
-    for(start = input; *input; input++)
+
+    while(*input && my_strchr(punc, *input))
     {
-        for(i = 0; punc[i]; i++)
-        {
-            *input = '\0';
-            *ptr = input + 1;
-            if(start == input)
-            {
-                start = *ptr;
-            } else
-            {
-                return start;
-            }
-        }
+        input++;
     }
-    *ptr = NULL;
+
+    if(!*input)
+    {
+        return NULL;
+    }
+
+    char *start = input;
+
+    while(*input && !my_strchr(punc, *input))
+    {
+        input++;
+    }
+
+    if(*input)
+    {
+        *input = '\0';
+        *ptr = input + 1;
+    } else
+    {
+        *ptr = NULL;
+    }
+
     return start;
 }
+
+
 
 char *my_strcpy(char *dest, const char *src)
 {
